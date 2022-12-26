@@ -8,13 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+      <Content Include=".github\workflows\basket-svc-publish.yml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Treasures.Common" Version="1.1.0" />
     </ItemGroup>
 
 </Project>
