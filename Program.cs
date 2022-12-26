@@ -9,8 +9,6 @@ using Treasures.Common.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers().AddJsonOptions(opt => {
     opt.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 }).ConfigureApiBehaviorOptions(x => { x.SuppressMapClientErrors = true; });
