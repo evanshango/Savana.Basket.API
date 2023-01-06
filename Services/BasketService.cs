@@ -14,26 +14,26 @@ public class BasketService : IBasketService {
     }
 
     public async Task<BasketDto?> AddBasket(BasketDto basketDto) {
+        var subtotal = basketDto.Items.Sum(item => item.Price * item.Quantity);
+        basketDto.SubTotal = subtotal;
         return await _cacheService.UpsertItem(id: basketDto.BuyerId!, timeSpan: _timeSpan, entity: basketDto);
     }
 
     public async Task<BasketDto?> GetBasket(string basketId) => await _cacheService.GetItem(id: basketId);
 
-    public async Task<bool> DeleteBasket(BasketDto basket, int productId, int quantity) {
+    public async Task<bool> DeleteBasket(BasketDto basket, string productId, int quantity) {
         var updated = PrepareBasket(basket, productId, quantity);
-        if (updated.Items.Count <= 0) {
-            return await _cacheService.DeleteItem(id: updated.BuyerId!);
-        }
+        if (updated.Items.Count <= 0) return await _cacheService.DeleteItem(id: updated.BuyerId!);
 
         var update = await AddBasket(updated);
         return update != null;
     }
 
-    private static BasketDto PrepareBasket(BasketDto basket, int productId, int quantity) {
+    private static BasketDto PrepareBasket(BasketDto basket, string productId, int quantity) {
         if (basket.Items.Count <= 0) return basket;
-        var item = basket.Items.FirstOrDefault(i => i.ProductId.Equals(productId));
+        var item = basket.Items.FirstOrDefault(i => i.ProductId!.Equals(productId));
         if (item == null) return basket;
-        
+
         item.Quantity = quantity;
         if (item.Quantity <= 0) basket.Items.Remove(item);
         else basket.Items[basket.Items.IndexOf(item)] = item;
