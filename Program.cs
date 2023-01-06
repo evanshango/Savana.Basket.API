@@ -1,6 +1,11 @@
 using System.Text.Json.Serialization;
+using log4net;
+using MassTransit;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
+using Savana.Basket.API.Consumers;
+using Savana.Basket.API.Interfaces;
+using Savana.Basket.API.Services;
 using StackExchange.Redis;
 using Treasures.Common.Extensions;
 using Treasures.Common.Interfaces;
@@ -31,6 +36,30 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ => {
 
 builder.Services.AddScoped(typeof(ICacheService<>), typeof(CacheService<>));
 
+builder.Services.AddScoped<IBasketService, BasketService>();
+builder.Services.AddScoped<IHistoryService, HistoryService>();
+
+// Add MassTransit
+builder.Services.AddMassTransit(config => {
+    config.AddConsumer<BasketConsumer>();
+    config.UsingRabbitMq((ctx, cfg) => {
+        cfg.Host(builder.Configuration["RabbitMQ:Host"], h => {
+                h.Username(builder.Configuration["RabbitMQ:Username"]);
+                h.Password(builder.Configuration["RabbitMQ:Password"]);
+            }
+        );
+        cfg.ReceiveEndpoint("basket-events", c =>
+            c.ConfigureConsumer<BasketConsumer>(ctx)
+        );
+    });
+});
+
+builder.Services.AddLogging(c => c.ClearProviders());
+builder.Logging.AddLog4Net();
+
+GlobalContext.Properties["pid"] = Environment.ProcessId;
+GlobalContext.Properties["appName"] = builder.Configuration["Properties:Name"];
+
 var app = builder.Build();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -44,5 +73,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var address = Environment.GetEnvironmentVariable("ASPNETCORE_URLS")!.Split(";").First();
+app.Logger.LogInformation("Savana Basket.API started on {Addr}", address);
 
 app.Run();

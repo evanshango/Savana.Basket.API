@@ -15,7 +15,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Treasures.Common" Version="1.1.0" />
+      <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.10" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="6.1.0" />
+      <PackageReference Include="Treasures.Common" Version="1.1.4" />
     </ItemGroup>
 
 </Project>
